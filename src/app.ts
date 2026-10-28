@@ -1,4 +1,5 @@
 import { createMcpHonoApp } from "@modelcontextprotocol/hono";
+import { bearerAuth } from "hono/bearer-auth";
 
 import { db } from "@/db/index.ts";
 import { createBookQueries } from "@/db/queries/books.ts";
@@ -21,6 +22,12 @@ export const createApp = (deps?: McpDependencies) => {
   const handler = createMcpServer(resolvedDeps);
   const app = createMcpHonoApp();
 
+  const apiToken = process.env.API_TOKEN;
+  
+  if (apiToken) {
+    app.use("*", bearerAuth({ token: apiToken }));
+  }
+  
   app.all("*", (c) => {
     // SAFETY: createMcpHonoApp attaches parsedBody to context variables without generic typing.
     const vars = c.var as { parsedBody?: unknown };
